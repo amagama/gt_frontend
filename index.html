@@ -1,0 +1,193 @@
+<html>
+
+<head>
+<title>LeadingLocally Search</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+<script src='https://libraries.firebaseapp.com/react/react.js'></script>
+<script src='https://libraries.firebaseapp.com/react/JSXTransformer.js'></script>
+<script src='https://libraries.firebaseapp.com/angular/angular.js'></script>
+<script src='https://libraries.firebaseapp.com/react/ngReact.min.js'></script>
+<script src="https://use.edgefonts.net/bebas-neue.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="https://cloud.github.com/downloads/lafeber/world-flags-sprite/flags32.css" />
+<link href='https://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'>
+<style>
+
+	body { margin:0px;font-family: 'Oswald', sans-serif;background-image:url('bg.gif'); }
+	table { width:100%;height:100%;margin:0px;border-collapse:collapse; }
+	td { padding:0px; }
+
+	h1 { cursor:pointer;font-size:30px;font-weight:bold;margin:10px;margin-bottom:0px; }
+	p { margin:10px;font-size:20px; }
+
+	.p_back { font-size:medium; }
+	.words_back { font-size:small; }
+
+    .card_container { width:100%;text-align:center;display:inline-block; }
+    .card {
+    	
+    	display:inline-block;
+    	margin:0px 200px;
+    	margin-bottom:200px;
+    	height:0px;
+    }
+    .card_back { transform:rotateY(180deg);position:relative;left:420px;top:-10px; }
+    .side {
+    	transition:all 0.5s ease;
+    	background:rgba(255,255,255,0.8);border-radius:6px;margin:10px;padding:0px;width:380px;height:180px;
+    	transform: translateX(-200px);
+    }
+
+    .bookmarked { background-color:rgba(14, 251, 14, 0.18);border-radius:4px; }
+    .flipped { transform:rotateY(180deg);pointer-events:none;opacity:0.05; }
+    .side_opacity {  }
+
+    .l_align { padding-left:10px; }
+    .words_cell { background:rgba(0,0,0,0.5);color:white; }
+    .tag { cursor:pointer;display:inline-block;text-align:center;padding:2px 4px;padding-top:0px;border:dashed 1px rgba(0,0,0,0); }
+    .tag:hover { border:dashed 1px white; }
+
+    .message_area { border:solid 1px black;width:100%;height:90%;border-top-right-radius:6px;border-top-left-radius:6px;padding:8px;font-size:large; }
+    .rel { transition:all 0.5s ease;width:0px;height:0px;position:relative;top:0px;left:0px; }
+
+    .back_buttons_cell { height:25%; }
+
+    .back_exit { width:15%;text-align:center;cursor:pointer;padding:4px;border:solid 1px rgba(0,0,0,0.5);  }
+    .back_exit:hover { background:rgba(255,0,0,0.2); }
+
+    .back_message { font-size:small;background:white;width:60%;text-align:center;cursor:pointer;padding:4px;border:solid 1px rgba(0,0,0,0.5); }
+    .back_message:hover { background:rgba(0,0,255,0.2); }
+
+    .back_bookmark { background:white;width:15%;text-align:center;cursor:pointer;padding:4px;border:solid 1px rgba(0,0,0,0.5); }
+    .back_bookmark:hover { background:rgba(0,255,0,0.2); }
+
+    .back_sendmessage { background:white;width:20%;text-align:center;cursor:pointer;padding:4px;border:solid 1px rgba(0,0,0,0.5); }
+    .back_sendmessage:hover { background:rgba(0,255,0,0.2); }
+
+</style>
+</head>
+
+<body id='AppCtrl' ng-controller="AppCtrl">
+	<center>
+	<style>
+	.search_input { font-family: 'Oswald', sans-serif;background:rgba(255,255,255,0.5);text-align:center;padding:8px;font-size:large;height:50px;border-radius:8px;width:80%;border:solid 1px black;margin:20px 10%; }
+	.menu_table { margin-left:25%;width:75%; }
+	.ttr { cursor:pointer;background:rgba(255,255,255,0.7);text-align:right; }
+	.ttr:hover { background:rgba(0,0,0,0.2); }
+	.menu_bg { background:rgba(255,255,255,0.4);width:20%;vertical-align:top; }
+	.menu_opt { padding:15px;font-size:large; }
+
+	</style>
+	<table style='width:100%;height:auto;'>
+	<tr>
+	<td class='menu_bg'>
+		<input class="search_input" />
+		<table class='menu_table'>
+			<tr class='ttr'><td class='menu_opt'>Option</td><td class='menu_opt'><i class='fa fa-tag fa-1x'></i></td></tr>
+			<tr class='ttr'><td class='menu_opt'>Option</td><td class='menu_opt'><i class='fa fa-tag fa-1x'></i></td></tr>
+		</table>
+	</td>
+	<td>
+		<div class='card_container'>
+			
+			<div class='card' ng-repeat="(username, profile) in Profiles.database">
+				<center>
+					<div class='rel' ng-class="{'flipped':profile.active}">
+						<div class='side'>
+							<table style='text-align:center;' ng-class="{'bookmarked':profile.bookmarked}">
+								<tr><td ng-click="profile.active = true"><h1>{{ profile.name }}</h1></td></tr>
+								<tr><td><p>{{ profile.description }}</p></td></tr>
+								<tr><td class='words_cell'><div ng-repeat="tag in profile.words" class='tag'>{{ tag }}</div></td></tr>
+							</table>
+						</div>
+					</div>
+					<div class='rel' ng-class="{'flipped':!profile.active}" style='top:-10px;'>
+						<div class='side'>
+							<table style='text-align:center;'>
+								<tr ng-if="!profile.message"><td><p class='p_back'>{{ profile.description }} {{ profile.description }} {{ profile.description }}</p></td></tr>
+								<tr ng-if="profile.message" ><td>
+									<textarea ng-init="profile.email = 'Hi @'+profile.username+',\n\n '" ng-model='profile.email' class='message_area'></textarea>
+								</td></tr>
+								<tr><td class='back_buttons_cell'>
+									<table>
+										<tr>
+											<td class='back_exit' ng-click="profile.active = false"><i class='fa fa-close fa-1x'></i></td>
+											<td class='back_message' ng-click="profile.message = !profile.message">reach out to {{ profile.username }}</td>
+											<td ng-if="!profile.message" class='back_bookmark' ng-click="profile.bookmarked = !profile.bookmarked;profile.active = false"><i class='fa fa-tag fa-1x'></i></td>
+											<td ng-if="profile.message" class='back_sendmessage' ng-click="profile.bookmarked = !profile.bookmarked;profile.active = false"><i class='fa fa-send fa-1x'></i></td>
+										</tr>
+									</table>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</center>
+			</div>
+
+		</div>
+	</td>
+	</tr>
+	</table>
+</body>
+
+<script>
+// <react-component ng-repeat="result in Search.results track by $index" name='MiniProfile' props="result" />
+/*! ngStorage 0.3.0 | Copyright (c) 2013 Gias Kay Lee | MIT License */
+"use strict";!function(){function a(a){return["$rootScope","$window",function(b,c){for(var d,e,f,g=c[a]||(console.warn("This browser does not support Web Storage!"),{}),h={$default:function(a){for(var b in a)angular.isDefined(h[b])||(h[b]=a[b]);return h},$reset:function(a){for(var b in h)"$"===b[0]||delete h[b];return h.$default(a)}},i=0;i<g.length;i++)(f=g.key(i))&&"ngStorage-"===f.slice(0,10)&&(h[f.slice(10)]=angular.fromJson(g.getItem(f)));return d=angular.copy(h),b.$watch(function(){e||(e=setTimeout(function(){if(e=null,!angular.equals(h,d)){angular.forEach(h,function(a,b){angular.isDefined(a)&&"$"!==b[0]&&g.setItem("ngStorage-"+b,angular.toJson(a)),delete d[b]});for(var a in d)g.removeItem("ngStorage-"+a);d=angular.copy(h)}},100))}),"localStorage"===a&&c.addEventListener&&c.addEventListener("storage",function(a){"ngStorage-"===a.key.slice(0,10)&&(a.newValue?h[a.key.slice(10)]=angular.fromJson(a.newValue):delete h[a.key.slice(10)],d=angular.copy(h),b.$apply())}),h}]}angular.module("ngStorage",[]).factory("$localStorage",a("localStorage")).factory("$sessionStorage",a("sessionStorage"))}();
+	
+	function gEL(id) { return document.getElementById(id); }
+	
+	function ng() {
+	    var ctrl = document.querySelector('#AppCtrl');
+	    var scope = angular.element(ctrl).scope();
+	    return scope;
+	}
+
+	setTimeout(function () {
+
+		var app = angular.module('app', ['ngStorage', 'react']).controller('AppCtrl', function AppCtrl( $scope, $location, $localStorage, $sessionStorage, $http, $window) {
+
+			$scope.Profiles = {};
+			$scope.Profiles.database = {};
+			$scope.Profiles.NewProfile = function (username, name, desc) {
+				var prof = {};
+				prof.username = username.toLowerCase();
+				prof.name = name;
+				prof.description = desc;
+				prof.words = [];
+				$scope.Profiles.database[name] = prof;
+				return prof;
+			};
+
+			var alex = $scope.Profiles.NewProfile("AlexBreadman_Kent_UK", "Alexander Breadman", "Golang hacker & web services engineer!")
+			alex.words = ["programmer","golang","developer","angular","js","malta","happy","married","unity3d","bitcoin","go","1337"];
+
+			var dave = $scope.Profiles.NewProfile("DaveLemar_Kent_UK", "David Lemar", "216 byte description about you as a person")
+			dave.words = ["programmer","golang","developer","angular","js","malta","happy","british","unity3d","bitcoin","go","1337"];
+
+			var mark = $scope.Profiles.NewProfile("MarkBrown_Kent_UK", "Mark Brown", "216 byte description about you as a person")
+			mark.words = ["filmmaker","documentary","london","angular","js","malta","happy","british","unity3d","bitcoin","go","1337"];
+
+			var pete = $scope.Profiles.NewProfile("PeterWilliams_Kent_UK", "Peter Williams", "Affordable Thanet-based Guitar Tuition")
+			pete.words = ["guitar","tuition","london","csharp","js","unity3d","happy","british","thanet","bitcoin","go","1337"];
+
+		});
+
+		angular.bootstrap(document, ['app']);
+
+	}, 999);
+
+</script>
+<script type='text/jsx'>
+	/*
+	var LiveBusinesses = React.createClass({
+		render:function () {
+			var res = this.props.results.map(function (result) { return ( <MiniProfile key={result} props={ result } /> ); });
+			return ( <div className='results_container'>{res}</div> );
+		}
+	});
+	*/
+</script>
+</html>
